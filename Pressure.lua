@@ -464,3 +464,39 @@ end
 end
 
 RunService.RenderStepped:Connect(AutoPassword)
+local Notification = {
+	Enabled = false,
+	EntityNames = {
+		"Angler", "Eyefestation", "Blitz", "Pinkie",
+		"Froger", "Chainsmoker", "Pandemonium", "Body"
+	},
+	Cache = {}
+}
+
+InteractionTab:Checkbox("Notification", false, function(v)
+	Notification.Enabled = v
+end)
+
+function SendNotification(title, text, duration)
+	game:GetService("StarterGui"):SetCore("SendNotification", {
+		Title = title,
+		Text = text,
+		Duration = duration
+	})
+	local sound = Instance.new("Sound", workspace)
+	sound.SoundId = "rbxassetid://4590657391"
+	sound.Volume = 2
+	sound:Play()
+end
+
+function ScanEntities()
+	if not Notification.Enabled then return end
+	for _, obj in ipairs(workspace:GetDescendants()) do
+		if table.find(Notification.EntityNames, obj.Name) and not Notification.Cache[obj] then
+			Notification.Cache[obj] = true
+			SendNotification("Entity Notification", obj.Name .. " has spawned.", 3)
+		end
+	end
+end
+
+game:GetService("RunService").RenderStepped:Connect(ScanEntities)
