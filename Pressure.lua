@@ -92,7 +92,7 @@ if not part then return end
 if Config.Settings.HighlightEnabled then
 local h = Instance.new("Highlight")
 h.Name = "ESP_Highlight" h.FillColor = c h.OutlineColor = Color3.new(0,0,0)
-h.FillTransparency = 0.5 h.OutlineTransparency = 0 h..Parent = o
+h.FillTransparency = 0.5 h.OutlineTransparency = 0 h.Parent = o
 table.insert(ESPVisuals,h)
 end
 if Config.Settings.BillboardEnabled and t then
