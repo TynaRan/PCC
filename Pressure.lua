@@ -597,86 +597,82 @@ end
 
 game:GetService("RunService").RenderStepped:Connect(ScanEntities)
 
-local v1 = {"Angler","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium"}
-local v2 = false
-local v3 = {}
-local v4 = nil
-local v5 = {}
-local v6 = nil
-local v7 = nil
+PropTab:Checkbox("Anti Entity", false, function(state)
+    local entityNames = {"Angler","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium"}
+    local trackedEntities = {}
+    local safetyPlatform = nil
+    local originalPositions = {}
+    local childAddedConn = nil
+    local childRemovedConn = nil
 
-local function v8()
-    --if v4 then v4:Destroy() end
-    v4 = Instance.new("Part")
-    v4.Size = Vector3.new(1000,1,1000)
-    v4.Position = Vector3.new(0,150,0)
-    v4.Anchored = true
-    v4.Transparency = 0.7
-    v4.Parent = workspace
-end
-
-local function v9(v10)
-    if v10 and v10.Character and v10.Character:FindFirstChild("HumanoidRootPart") then
-        local v11 = v4.Position + Vector3.new(0,5,0)
-        v5[v10.UserId] = v10.Character.HumanoidRootPart.CFrame
-        v10.Character.HumanoidRootPart.CFrame = CFrame.new(v11)
+    local function createPlatform()
+        if safetyPlatform then safetyPlatform:Destroy() end
+        safetyPlatform = Instance.new("Part")
+        safetyPlatform.Size = Vector3.new(1000,1,1000)
+        safetyPlatform.Position = Vector3.new(0,900,0)
+        safetyPlatform.Anchored = true
+        safetyPlatform.Parent = workspace
     end
-end
 
-local function v12(v13)
-    if v5[v13.UserId] then
-        v13.Character.HumanoidRootPart.CFrame = v5[v13.UserId]
-        v5[v13.UserId] = nil
-    end
-end
-
-local function v14(v15)
-    if v15:IsA("Model") and table.find(v1,v15.Name) then
-        v3[v15] = true
-        v8()
-        for _,v16 in pairs(game.Players:GetPlayers()) do
-            v9(v16)
+    local function teleportToSafety(player)
+        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local safePosition = safetyPlatform.Position + Vector3.new(0,5,0)
+            originalPositions[player.UserId] = player.Character.HumanoidRootPart.CFrame
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(safePosition)
         end
     end
-end
 
-local function v17(v18)
-    if v3[v18] then
-        v3[v18] = nil
-        local v19 = false
-        for v20,_ in pairs(v3) do
-            if v20:IsA("Model") and table.find(v1,v20.Name) then
-                v19 = true
-                break
-            end
+    local function returnToOriginal(player)
+        if originalPositions[player.UserId] then
+            player.Character.HumanoidRootPart.CFrame = originalPositions[player.UserId]
+            originalPositions[player.UserId] = nil
         end
-        if not v19 then
-            for _,v21 in pairs(game.Players:GetPlayers()) do
-                v12(v21)
+    end
+
+    local function handleEntityAdded(entity)
+        if entity:IsA("Model") and table.find(entityNames, entity.Name) then
+            trackedEntities[entity] = true
+            createPlatform()
+            for _, player in pairs(game.Players:GetPlayers()) do
+                teleportToSafety(player)
             end
         end
     end
-end
 
-PropTab:Checkbox("Anti Entity", false, function(v22)
-    v2 = v22
-    if v2 then
-        for _,v23 in pairs(workspace:GetChildren()) do
-            v14(v23)
+    local function handleEntityRemoved(entity)
+        if trackedEntities[entity] then
+            trackedEntities[entity] = nil
+            local anyEntitiesLeft = false
+            for e,_ in pairs(trackedEntities) do
+                if e:IsA("Model") and table.find(entityNames, e.Name) then
+                    anyEntitiesLeft = true
+                    break
+                end
+            end
+            if not anyEntitiesLeft then
+                for _, player in pairs(game.Players:GetPlayers()) do
+                    returnToOriginal(player)
+                end
+            end
         end
-        v6 = workspace.ChildAdded:Connect(v14)
-        v7 = workspace.ChildRemoved:Connect(v17)
+    end
+
+    if state then
+        for _, entity in pairs(workspace:GetChildren()) do
+            handleEntityAdded(entity)
+        end
+        childAddedConn = workspace.ChildAdded:Connect(handleEntityAdded)
+        childRemovedConn = workspace.ChildRemoved:Connect(handleEntityRemoved)
     else
-        if v4 then
-            for _,v24 in pairs(game.Players:GetPlayers()) do
-                v12(v24)
+        if safetyPlatform then
+            for _, player in pairs(game.Players:GetPlayers()) do
+                returnToOriginal(player)
             end
-            v4:Destroy()
-            v4 = nil
+            safetyPlatform:Destroy()
         end
-        if v6 then v6:Disconnect() end
-        if v7 then v7:Disconnect() end
-        v3 = {}
-        v5 = {}
+        if childAddedConn then childAddedConn:Disconnect() end
+        if childRemovedConn then childRemovedConn:Disconnect() end
+        trackedEntities = {}
+        originalPositions = {}
     end
 end)
