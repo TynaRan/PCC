@@ -75,58 +75,124 @@ return false
 end
 
 function ClearESP()
-for _,v in pairs(ESPVisuals) do if v and v.Parent then v:Destroy() end end
-ESPObjects = {} ESPVisuals = {}
+for _,v in pairs(ESPVisuals) do 
+if v and v.Parent then 
+if v.Destroy then v:Destroy() else for _,x in pairs(v) do x:Destroy() end end 
+end 
+end
+ESPObjects = {} 
+ESPVisuals = {}
 end
 
 function CreateESP()
 ClearESP()
 if not Config.ESPEnabled then return end
-local function Track(o)
-if ESPObjects[o] then return end
-local ok,c,t=ShouldTrack(o) if not ok then return end
+
+local function CreateUIElement(o,c,t)
 local part = o:IsA("Player") and o.Character and o.Character:FindFirstChild("HumanoidRootPart") or
 o:IsA("Model") and (o.PrimaryPart or o:FindFirstChildWhichIsA("BasePart")) or
 (o:IsA("BasePart") and o)
-if not part then return end
+if not part then return {} end
+
+local elements = {}
+
 if Config.Settings.HighlightEnabled then
 local h = Instance.new("Highlight")
-h.Name = "ESP_Highlight" h.FillColor = c h.OutlineColor = Color3.new(0,0,0)
-h.FillTransparency = 0.5 h.OutlineTransparency = 0 h.Parent = o
-table.insert(ESPVisuals,h)
+h.Name = "ESP_Highlight"
+h.FillColor = c
+h.OutlineColor = Color3.fromRGB(15,15,15)
+h.FillTransparency = Config.Settings.HighlightTransparency or 0.7
+h.OutlineTransparency = 0
+h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+h.Parent = o
+table.insert(elements,h)
 end
+
 if Config.Settings.BillboardEnabled and t then
 local b = Instance.new("BillboardGui")
-b.Name = "ESP_Billboard" b.Adornee = part b.Size = UDim2.new(0,200,0,50)
-b.StudsOffset = Vector3.new(0,3,0) b.AlwaysOnTop = true b.Parent = o
+b.Name = "ESP_Billboard"
+b.Adornee = part
+b.Size = UDim2.new(0,200,0,Config.Settings.TextSize or 24)
+b.StudsOffset = Vector3.new(0,3,0)
+b.AlwaysOnTop = true
+b.MaxDistance = Config.Settings.MaxDistance or 1500
+b.Parent = o
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(1,0,1,0)
+frame.BackgroundTransparency = Config.Settings.BackgroundTransparency or 1
+frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+frame.BorderSizePixel = 0
+frame.Parent = b
+
 local l = Instance.new("TextLabel")
-l.Name = "ESP_Text" l.Size = UDim2.new(1,0,1,0) l.BackgroundTransparency = 1
-l.Text = t l.TextColor3 = c l.TextSize = 20 l.Font = Enum.Font.GothamBold
-l.Parent = b
-table.insert(ESPVisuals,b)
+l.Name = "ESP_Text"
+l.Size = UDim2.new(1,-10,1,-4)
+l.Position = UDim2.new(0,5,0,2)
+l.BackgroundTransparency = 1
+l.Text = t
+l.TextColor3 = c
+l.TextSize = Config.Settings.TextSize or 18
+l.Font = Enum.Font.Jura
+l.TextStrokeColor3 = Color3.fromRGB(10,10,10)
+l.TextStrokeTransparency = 0.4
+l.TextXAlignment = Enum.TextXAlignment.Left
+l.Parent = frame
+
+table.insert(elements,b)
 end
+
+return elements
+end
+
+local function Track(o)
+if ESPObjects[o] then return end
+local ok,c,t=ShouldTrack(o) 
+if not ok then return end
+
+local elements = CreateUIElement(o,c,t)
+if #elements > 0 then
+ESPVisuals[o] = elements
 ESPObjects[o] = true
 end
-
-for _, o in ipairs(workspace:GetDescendants()) do
-if Config.Settings.CheckAllInstances or o:IsA("Model") or o:IsA("BasePart") then Track(o) end
 end
 
+local function SafeTrack(o)
+if not o or not o.Parent then return end
+pcall(Track,o)
+end
+
+coroutine.wrap(function()
+local delay = Config.Settings.ScanDelay or 0.02
+for _,o in ipairs(workspace:GetDescendants()) do
+if Config.Settings.CheckAllInstances or o:IsA("Model") or o:IsA("BasePart") then
+SafeTrack(o)
+task.wait(delay)
+end
+end
+end)()
+
 workspace.DescendantAdded:Connect(function(o)
-wait(1)
-            
-if Config.Settings.CheckAllInstances or o:IsA("Model") or o:IsA("BasePart") then Track(o) end
+task.wait(1)
+if Config.Settings.CheckAllInstances or o:IsA("Model") or o:IsA("BasePart") then
+SafeTrack(o)
+end
 end)
 
 if Config.Players.Enabled then
-for _, p in ipairs(Players:GetPlayers()) do Track(p) end
-Players.PlayerAdded:Connect(function(p) Track(p) end)
+for _,p in ipairs(Players:GetPlayers()) do SafeTrack(p) end
+Players.PlayerAdded:Connect(function(p) 
+p.CharacterAdded:Connect(function() 
+task.wait(1)
+SafeTrack(p) 
+end)
+SafeTrack(p) 
+end)
 end
 end
 
 function UpdateESP()
-ClearESP()
-if Config.ESPEnabled then CreateESP() end
+task.spawn(CreateESP)
 end
 
 local Platform = Instance.new("Part")
@@ -162,7 +228,7 @@ wait()
 end
 end)()
 end
-GodMode()
+--GodMode()
 
 
 function FullBright() Lighting.Brightness = Property.Brightness end
