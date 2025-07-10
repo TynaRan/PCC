@@ -52,11 +52,11 @@ Necrobloxicon={Color=Color3.fromRGB(139,0,0),DisplayName="Necrobloxicon"},
 CollisionPart={Color=Color3.fromRGB(255,255,255),DisplayName="Door"},
 --CollisionPart={Color=Color3.fromRGB(255,255,255),DisplayName="Door"},
 Froger={Color=Color3.fromRGB(255,255,255),DisplayName="Froger"},
-Chainsmoker={Color=Color3.fromRGB(255,255,255),DisplayName="Chainsmoker"}
+Chainsmoker={Color=Color3.fromRGB(255,255,255),DisplayName="Chainsmoker"},
 Pandemonium={Color=Color3.fromRGB(255,255,255),DisplayName="Pandemonium"},
 Body={Color=Color3.fromRGB(255,255,255),DisplayName="Body"},
 Pinkie={Color=Color3.fromRGB(255,255,255),DisplayName="Pinkie"},
-Blitz={Color=Color3.fromRGB(255,255,255),DisplayName="Blitz"}
+Blitz={Color=Color3.fromRGB(255,255,255),DisplayName="Blitz"},
 Eyefestation={Color=Color3.fromRGB(255,255,255),DisplayName="Eyefestation"},
 Angler={Color=Color3.fromRGB(255,255,255),DisplayName="Angler"},
 },
@@ -193,6 +193,7 @@ end)()
 
 workspace.DescendantAdded:Connect(function(o)
 task.wait(1)
+			
 if Config.Settings.CheckAllInstances or o:IsA("Model") or o:IsA("BasePart") then
 SafeTrack(o)
 end
@@ -263,91 +264,88 @@ function GodMode()
 end
 --]]
 function GodMode()
-    local v1 = {"Angler","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium","Body"}
+    local v1 = {"Angler","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium"}
     local v2 = game.Players.LocalPlayer
     local v3 = {}
     local v4 = nil
-    local v5 = nil
+    local v5 = {}
+    local v6 = true
+    local v7 = nil
+    local v8 = nil
 
-    local function v6()
-        if not v2.Character then return end
-        local v7 = v2.Character:FindFirstChild("HumanoidRootPart")
-        if not v7 then return end
-        v3.Position = v7.Position
-        v3.Rotation = v7.Rotation
+    local function v9()
+        if v4 then v4:Destroy() end
+        v4 = Instance.new("Part")
+        v4.Size = Vector3.new(1000,1,1000)
+        v4.Position = Vector3.new(0,150,0)
+        v4.Anchored = true
+        v4.Parent = workspace
     end
 
-    local function v8()
-        if not v5 then
-            v5 = Instance.new("Part")
-            v5.Name = "SafePlatform"
-            v5.Anchored = true
-            v5.Size = Vector3.new(2000, 1, 2000)
-            v5.Position = Vector3.new(0, 1000, 0)
-            v5.TopSurface = Enum.SurfaceType.Smooth
-            v5.BottomSurface = Enum.SurfaceType.Smooth
-            v5.Parent = workspace
+    local function v10(v11)
+        if v11 and v11.Character and v11.Character:FindFirstChild("HumanoidRootPart") then
+            local v12 = v4.Position + Vector3.new(0,5,0)
+            v5[v11.UserId] = v11.Character.HumanoidRootPart.CFrame
+            v11.Character.HumanoidRootPart.CFrame = CFrame.new(v12)
         end
+    end
 
-        if v2.Character then
-            local v9 = v2.Character:FindFirstChild("HumanoidRootPart")
-            if v9 then
-                v9.CFrame = CFrame.new(v5.Position + Vector3.new(0, 4, 0))
+    local function v13(v14)
+        if v5[v14.UserId] then
+            v14.Character.HumanoidRootPart.CFrame = v5[v14.UserId]
+            v5[v14.UserId] = nil
+        end
+    end
+
+    local function v15(v16)
+        if v16:IsA("Model") and table.find(v1,v16.Name) then
+            v3[v16] = true
+            v9()
+            for _,v17 in pairs(game.Players:GetPlayers()) do
+                v10(v17)
             end
         end
     end
 
-    local function v10()
-        if v2.Character and v3.Position then
-            local v11 = v2.Character:FindFirstChild("HumanoidRootPart")
-            if v11 then
-                v11.CFrame = CFrame.new(v3.Position) * CFrame.Angles(0, v3.Rotation.Y, 0)
-            end
-        end
-        if v5 then
-            v5:Destroy()
-            v5 = nil
-        end
-    end
-
-    local function v12(v13)
-        if v13:IsA("Model") and table.find(v1, v13.Name) then
-            if not v4 then
-                v6()
-                v8()
-            end
-            v4 = true
-            v13.Destroying:Connect(function()
-                local v14 = false
-                for _, v15 in pairs(workspace:GetDescendants()) do
-                    if v15:IsA("Model") and table.find(v1, v15.Name) then
-                        v14 = true
-                        break
-                    end
+    local function v18(v19)
+        if v3[v19] then
+            v3[v19] = nil
+            local v20 = false
+            for v21,_ in pairs(v3) do
+                if v21:IsA("Model") and table.find(v1,v21.Name) then
+                    v20 = true
+                    break
                 end
-                if not v14 then
-                    v4 = false
-                    v10()
+            end
+            if not v20 then
+                for _,v22 in pairs(game.Players:GetPlayers()) do
+                    v13(v22)
                 end
-            end)
+            end
         end
     end
 
-    for _, v16 in ipairs(workspace:GetDescendants()) do
-        v12(v16)
+    for _,v23 in pairs(workspace:GetChildren()) do
+        v15(v23)
     end
 
-    workspace.DescendantAdded:Connect(v12)
+    v7 = workspace.ChildAdded:Connect(v15)
+    v8 = workspace.ChildRemoved:Connect(v18)
 
-    v2.CharacterAdded:Connect(function(v17)
-        if v4 then
-            task.wait(0.5)
-            v8()
+    while v6 do
+        task.wait(1)
+        if not v6 then
+            if v4 then
+                for _,v24 in pairs(game.Players:GetPlayers()) do
+                    v13(v24)
+                end
+            end
+            v6 = false
+            v7:Disconnect()
+            v8:Disconnect()
         end
-    end)
+    end
 end
-
-GodMode()
 function FullBright() Lighting.Brightness = Property.Brightness end
 function LowLagMode() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end
 function ClearFog() Lighting.FogStart = 999999 Lighting.FogEnd = 9999999 end
