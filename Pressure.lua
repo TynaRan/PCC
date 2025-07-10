@@ -4,12 +4,15 @@ local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local Camera = Workspace.CurrentCamera
 local HttpService = game:GetService("HttpService")
+
 local LocalPlayer = Players.LocalPlayer
 local UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/TynaRan/VapeMobile/refs/heads/main/vapemobile.lua"))()
+
 local Win = UI:Window("Preesure Creepy client", Color3.fromRGB(80, 120, 200), Enum.KeyCode.RightControl)
 local ESPTab = Win:Tab("ESP")
 local PropTab = Win:Tab("Property")
 local LoopTab = Win:Tab("Loops")
+
 local Config = {
 ESPEnabled=false,
 Players={Enabled=true,Color=Color3.fromRGB(0,255,0),ShowDistance=true,ShowName=true},
@@ -35,6 +38,7 @@ Gummylight={Color=Color3.fromRGB(255,20,147),DisplayName="Gummylight"},
 Notebook={Color=Color3.fromRGB(255,255,255),DisplayName="Notebook"},
 Necrobloxicon={Color=Color3.fromRGB(139,0,0),DisplayName="Necrobloxicon"},
 CollisionPart={Color=Color3.fromRGB(255,255,255),DisplayName="Door"},
+--CollisionPart={Color=Color3.fromRGB(255,255,255),DisplayName="Door"},
 PasswordPaper={Color=Color3.fromRGB(255,255,255),DisplayName="PasswordPaper"},
 },
 Settings={MaxDistance=500,CheckAllInstances=false,HighlightEnabled=true,BillboardEnabled=true}
@@ -88,12 +92,11 @@ if not part then return end
 if Config.Settings.HighlightEnabled then
 local h = Instance.new("Highlight")
 h.Name = "ESP_Highlight" h.FillColor = c h.OutlineColor = Color3.new(0,0,0)
-h.FillTransparency = 0.5 h.OutlineTransparency = 0 h.Parent = o
+h.FillTransparency = 0.5 h.OutlineTransparency = 0 h..Parent = o
 table.insert(ESPVisuals,h)
 end
 if Config.Settings.BillboardEnabled and t then
 local b = Instance.new("BillboardGui")
-b.Name = "ESP_Billboard"
 b.Name = "ESP_Billboard" b.Adornee = part b.Size = UDim2.new(0,200,0,50)
 b.StudsOffset = Vector3.new(0,3,0) b.AlwaysOnTop = true b.Parent = o
 local l = Instance.new("TextLabel")
@@ -105,10 +108,6 @@ end
 ESPObjects[o] = true
 end
 
-function UpdateESP()
-ClearESP()
-if Config.ESPEnabled then CreateESP() end
-end
 for _, o in ipairs(workspace:GetDescendants()) do
 if Config.Settings.CheckAllInstances or o:IsA("Model") or o:IsA("BasePart") then Track(o) end
 end
@@ -119,9 +118,15 @@ end)
 
 if Config.Players.Enabled then
 for _, p in ipairs(Players:GetPlayers()) do Track(p) end
--- Players.PlayerAdded:Connect(function(p) Track(p) end)
+Players.PlayerAdded:Connect(function(p) Track(p) end)
 end
-    
+end
+
+function UpdateESP()
+ClearESP()
+if Config.ESPEnabled then CreateESP() end
+end
+
 local Platform = Instance.new("Part")
 Platform.Name = "_WalkAir"
 Platform.Size = Vector3.new(10,1,10)
@@ -175,7 +180,6 @@ end
 end)
 end
 
---GodMode()
 
 function FullBright() Lighting.Brightness = Property.Brightness end
 function LowLagMode() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end
@@ -212,10 +216,10 @@ end)
 local VelocityEnabled = false
 local VelocitySpeed = 1.5
 
-PropTab:Checkbox("Enable Velocity", false, function(state)
+PropTab:Checkbox("CFrame Movement", false, function(state)
     VelocityEnabled = state
 end)
-PropTab:Textbox("Velocity Speed", false, function(txt)
+PropTab:Textbox("CFrame Speed", false, function(txt)
     local n = tonumber(txt)
     if n then VelocitySpeed = n end
 end)
@@ -232,6 +236,20 @@ function Velocity()
     end
 end
 RunService.RenderStepped:Connect(Velocity)
+local v1 = false
+
+PropTab:Checkbox("Hook SyncedPivot", false, function(v2)
+v1 = v2
+end)
+
+local v3
+v3 = hookmetamethod(game, "__namecall", function(v4, ...)
+local v5 = getnamecallmethod()
+if v5 == "InvokeServer" and v4:IsA("RemoteFunction") and v4.Name == "SyncedPivot" then
+if v1 then return nil end
+end
+return v3(v4, ...)
+end)
 local IgnoreEnabled = false
 local IgnoreTargets = {"MonsterLocker"}
 
@@ -327,7 +345,7 @@ end
 RunService.RenderStepped:Connect(Interaction)
 local AutoPasswordEnabled = false
 
-InteractionTab:Checkbox("AutoPassword", false, function(state)
+InteractionTab:Checkbox("Auto Password", false, function(state)
 AutoPasswordEnabled = state
 end)
 
@@ -375,17 +393,3 @@ end
 end
 
 RunService.RenderStepped:Connect(AutoPassword)
-local v1 = false
-
-PropTab:Checkbox("Ignore SyncedPivot", false, function(v2)
-v1 = v2
-end)
-
-local v3
-v3 = hookmetamethod(game, "__namecall", function(v4, ...)
-local v5 = getnamecallmethod()
-if v5 == "InvokeServer" and v4:IsA("RemoteFunction") and v4.Name == "SyncedPivot" then
-if v1 then return nil end
-end
-return v3(v4, ...)
-end)
