@@ -214,30 +214,42 @@ else Platform.Parent = nil end
 end
 
 function GodMode()
-local args = {"true"}
+    local args = {true}
+    local lastScan = 0
+    local cachedRemotes = {}
+    local scanInterval = 1.05
 
-coroutine.wrap(function()
-while true do
-local found = false
-for _, v in ipairs(workspace:GetDescendants()) do
-if v.Name == "Enter" and v:IsA("RemoteFunction") then
-found = true
-local success, err = pcall(function()
-v:InvokeServer(unpack(args))
-end)
-if not success then
-warn("Failed: "..tostring(err))
-end
-end
-end
+    coroutine.wrap(function()
+        while true do
+            local now = os.time()
+            
+            if now - lastScan >= scanInterval then
+                cachedRemotes = {}
+                for _, remote in ipairs(workspace:GetDescendants()) do
+                    if remote.Name == "Enter" and remote:IsA("RemoteFunction") then
+                        table.insert(cachedRemotes, remote)
+                    end
+                end
+                lastScan = now
+            end
 
-if not found then
-warn("Failed: Target not found")
-end
+            for _, remote in ipairs(cachedRemotes) do
+                local success, err = pcall(function()
+                    remote:InvokeServer(unpack(args))
+                end)
+                
+                if not success then
+                    if string.find(err, "expects a string") then
+                        args = {"true"}
+                    else
+                        warn("GodMode Error: "..tostring(err))
+                    end
+                end
+            end
 
-task.wait(0.1)
-end
-end)()
+            task.wait(0.25)
+        end
+    end)()
 end
 
 function FullBright() Lighting.Brightness = Property.Brightness end
