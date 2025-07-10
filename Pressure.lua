@@ -51,7 +51,14 @@ Notebook={Color=Color3.fromRGB(255,255,255),DisplayName="Notebook"},
 Necrobloxicon={Color=Color3.fromRGB(139,0,0),DisplayName="Necrobloxicon"},
 CollisionPart={Color=Color3.fromRGB(255,255,255),DisplayName="Door"},
 --CollisionPart={Color=Color3.fromRGB(255,255,255),DisplayName="Door"},
-PasswordPaper={Color=Color3.fromRGB(255,255,255),DisplayName="PasswordPaper"},
+Froger={Color=Color3.fromRGB(255,255,255),DisplayName="Froger"},
+Chainsmoker={Color=Color3.fromRGB(255,255,255),DisplayName="Chainsmoker"}
+Pandemonium={Color=Color3.fromRGB(255,255,255),DisplayName="Pandemonium"},
+Body={Color=Color3.fromRGB(255,255,255),DisplayName="Body"},
+Pinkie={Color=Color3.fromRGB(255,255,255),DisplayName="Pinkie"},
+Blitz={Color=Color3.fromRGB(255,255,255),DisplayName="Blitz"}
+Eyefestation={Color=Color3.fromRGB(255,255,255),DisplayName="Eyefestation"},
+Angler={Color=Color3.fromRGB(255,255,255),DisplayName="Angler"},
 },
 Settings={MaxDistance=500,CheckAllInstances=false,HighlightEnabled=true,BillboardEnabled=true}
 }
@@ -256,65 +263,91 @@ function GodMode()
 end
 --]]
 function GodMode()
-local v1 = {"Angler","Eyefestation","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium","Body"} 
-local v2 = game.Players.LocalPlayer
-local v3 = {}
+    local v1 = {"Angler","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium","Body"}
+    local v2 = game.Players.LocalPlayer
+    local v3 = {}
+    local v4 = nil
+    local v5 = nil
 
-local function v4()
-local v5 = v2.Character
-if v5 then
-local v6 = v5:FindFirstChildOfClass("Humanoid")
-if v6 then
-v3.H = v6.HipHeight
-v3.W = v6.WalkSpeed
-v3.J = v6.JumpPower
-v6.HipHeight = 100
-v6.WalkSpeed = 0
-v6.JumpPower = 0
-end
-end
+    local function v6()
+        if not v2.Character then return end
+        local v7 = v2.Character:FindFirstChild("HumanoidRootPart")
+        if not v7 then return end
+        v3.Position = v7.Position
+        v3.Rotation = v7.Rotation
+    end
+
+    local function v8()
+        if not v5 then
+            v5 = Instance.new("Part")
+            v5.Name = "SafePlatform"
+            v5.Anchored = true
+            v5.Size = Vector3.new(2000, 1, 2000)
+            v5.Position = Vector3.new(0, 1000, 0)
+            v5.TopSurface = Enum.SurfaceType.Smooth
+            v5.BottomSurface = Enum.SurfaceType.Smooth
+            v5.Parent = workspace
+        end
+
+        if v2.Character then
+            local v9 = v2.Character:FindFirstChild("HumanoidRootPart")
+            if v9 then
+                v9.CFrame = CFrame.new(v5.Position + Vector3.new(0, 4, 0))
+            end
+        end
+    end
+
+    local function v10()
+        if v2.Character and v3.Position then
+            local v11 = v2.Character:FindFirstChild("HumanoidRootPart")
+            if v11 then
+                v11.CFrame = CFrame.new(v3.Position) * CFrame.Angles(0, v3.Rotation.Y, 0)
+            end
+        end
+        if v5 then
+            v5:Destroy()
+            v5 = nil
+        end
+    end
+
+    local function v12(v13)
+        if v13:IsA("Model") and table.find(v1, v13.Name) then
+            if not v4 then
+                v6()
+                v8()
+            end
+            v4 = true
+            v13.Destroying:Connect(function()
+                local v14 = false
+                for _, v15 in pairs(workspace:GetDescendants()) do
+                    if v15:IsA("Model") and table.find(v1, v15.Name) then
+                        v14 = true
+                        break
+                    end
+                end
+                if not v14 then
+                    v4 = false
+                    v10()
+                end
+            end)
+        end
+    end
+
+    for _, v16 in ipairs(workspace:GetDescendants()) do
+        v12(v16)
+    end
+
+    workspace.DescendantAdded:Connect(v12)
+
+    v2.CharacterAdded:Connect(function(v17)
+        if v4 then
+            task.wait(0.5)
+            v8()
+        end
+    end)
 end
 
-local function v7()
-local v8 = v2.Character
-if v8 and v3.H then
-local v9 = v8:FindFirstChildOfClass("Humanoid")
-if v9 then
-v9.HipHeight = v3.H
-v9.WalkSpeed = v3.W
-v9.JumpPower = v3.J
-end
-end
-end
-
-local v10 = nil
-
-local function v11(v12)
-if v12:IsA("Model") and table.find(v1,v12.Name) then
-v10 = v12
-v4()
-v12.Destroying:Connect(function()
-v10 = nil
-v7()
-end)
-end
-end
-
-for _,v13 in ipairs(workspace:GetDescendants()) do
-v11(v13)
-end
-
-workspace.DescendantAdded:Connect(v11)
-
-v2.CharacterAdded:Connect(function()
-v3 = {}
-if v10 then
-v4()
-else
-v7()
-end
-end)
-end
+GodMode()
 function FullBright() Lighting.Brightness = Property.Brightness end
 function LowLagMode() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end
 function ClearFog() Lighting.FogStart = 999999 Lighting.FogEnd = 9999999 end
