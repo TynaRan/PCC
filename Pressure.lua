@@ -54,7 +54,7 @@ CollisionPart={Color=Color3.fromRGB(255,255,255),DisplayName="Door"},
 Froger={Color=Color3.fromRGB(255,255,255),DisplayName="Froger"},
 Chainsmoker={Color=Color3.fromRGB(255,255,255),DisplayName="Chainsmoker"},
 Pandemonium={Color=Color3.fromRGB(255,255,255),DisplayName="Pandemonium"},
-Body={Color=Color3.fromRGB(255,255,255),DisplayName="Body"},
+Body={Color=Color3.fromRGB(255,255,255),DisplayName="Bad Door"},
 Pinkie={Color=Color3.fromRGB(255,255,255),DisplayName="Pinkie"},
 Blitz={Color=Color3.fromRGB(255,255,255),DisplayName="Blitz"},
 Eyefestation={Color=Color3.fromRGB(255,255,255),DisplayName="Eyefestation"},
@@ -64,7 +64,7 @@ Settings={MaxDistance=500,CheckAllInstances=false,HighlightEnabled=true,Billboar
 }
 
 local Property = {WalkSpeed=16, JumpPower=50, FOV=75, Brightness=3}
-local Loops = {GodMode=false, FullBright=false, LowLagMode=false, ClearFog=false, NoClip=false, WalkOnAir=false}
+local Loops = {FullBright=false, LowLagMode=false, ClearFog=false, NoClip=false, WalkOnAir=false}
 local ESPObjects = {}
 local ESPVisuals = {}
 
@@ -262,7 +262,7 @@ function GodMode()
         end
     end)()
 end
---]]
+
 function GodMode()
     local v1 = {"Angler","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium"}
     local v2 = game.Players.LocalPlayer
@@ -346,6 +346,7 @@ function GodMode()
         end
     end
 end
+--]]
 function FullBright() Lighting.Brightness = Property.Brightness end
 function LowLagMode() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end
 function ClearFog() Lighting.FogStart = 999999 Lighting.FogEnd = 9999999 end
@@ -368,8 +369,8 @@ end
 Camera.FieldOfView = Property.FOV
 for k,v in pairs(Loops) do
 if v then
-if k == "GodMode" then GodMode()
-elseif k == "FullBright" then FullBright()
+--if k == "GodMode" then GodMode()
+if k == "FullBright" then FullBright()
 elseif k == "LowLagMode" then LowLagMode()
 elseif k == "ClearFog" then ClearFog()
 elseif k == "NoClip" then NoClip()
@@ -567,7 +568,7 @@ local Notification = {
 	Cache = {}
 }
 
-InteractionTab:Checkbox("Notification", false, function(v)
+PropTab:Checkbox("Notification", false, function(v)
 	Notification.Enabled = v
 end)
 
@@ -594,3 +595,87 @@ function ScanEntities()
 end
 
 game:GetService("RunService").RenderStepped:Connect(ScanEntities)
+
+local v1 = {"Angler","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium"}
+local v2 = false
+local v3 = {}
+local v4 = nil
+local v5 = {}
+local v6 = nil
+local v7 = nil
+
+local function v8()
+    if v4 then v4:Destroy() end
+    v4 = Instance.new("Part")
+    v4.Size = Vector3.new(1000,1,1000)
+    v4.Position = Vector3.new(0,150,0)
+    v4.Anchored = true
+    v4.Transparency = 0.7
+    v4.Parent = workspace
+end
+
+local function v9(v10)
+    if v10 and v10.Character and v10.Character:FindFirstChild("HumanoidRootPart") then
+        local v11 = v4.Position + Vector3.new(0,5,0)
+        v5[v10.UserId] = v10.Character.HumanoidRootPart.CFrame
+        v10.Character.HumanoidRootPart.CFrame = CFrame.new(v11)
+    end
+end
+
+local function v12(v13)
+    if v5[v13.UserId] then
+        v13.Character.HumanoidRootPart.CFrame = v5[v13.UserId]
+        v5[v13.UserId] = nil
+    end
+end
+
+local function v14(v15)
+    if v15:IsA("Model") and table.find(v1,v15.Name) then
+        v3[v15] = true
+        v8()
+        for _,v16 in pairs(game.Players:GetPlayers()) do
+            v9(v16)
+        end
+    end
+end
+
+local function v17(v18)
+    if v3[v18] then
+        v3[v18] = nil
+        local v19 = false
+        for v20,_ in pairs(v3) do
+            if v20:IsA("Model") and table.find(v1,v20.Name) then
+                v19 = true
+                break
+            end
+        end
+        if not v19 then
+            for _,v21 in pairs(game.Players:GetPlayers()) do
+                v12(v21)
+            end
+        end
+    end
+end
+
+PropTab:Checkbox("Anti Entity", false, function(v22)
+    v2 = v22
+    if v2 then
+        for _,v23 in pairs(workspace:GetChildren()) do
+            v14(v23)
+        end
+        v6 = workspace.ChildAdded:Connect(v14)
+        v7 = workspace.ChildRemoved:Connect(v17)
+    else
+        if v4 then
+            for _,v24 in pairs(game.Players:GetPlayers()) do
+                v12(v24)
+            end
+            v4:Destroy()
+            v4 = nil
+        end
+        if v6 then v6:Disconnect() end
+        if v7 then v7:Disconnect() end
+        v3 = {}
+        v5 = {}
+    end
+end)
