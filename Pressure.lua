@@ -113,6 +113,8 @@ if Config.Settings.CheckAllInstances or o:IsA("Model") or o:IsA("BasePart") then
 end
 
 workspace.DescendantAdded:Connect(function(o)
+wait(1)
+            
 if Config.Settings.CheckAllInstances or o:IsA("Model") or o:IsA("BasePart") then Track(o) end
 end)
 
@@ -146,39 +148,21 @@ else Platform.Parent = nil end
 end
 
 function GodMode()
-local args_true = {"true"}
-local args_false = {"false"}
-local index = 1
-
-for _, v in ipairs(workspace:GetDescendants()) do
-if v:IsA("RemoteFunction") and v.Name == "Enter" then
-v.Name = "Enter_" .. index
-index += 1
-pcall(function()
-v:InvokeServer(unpack(args_true))
+local args = {true}
+coroutine.wrap(function()
+while true do
+for _,v in ipairs(workspace:GetDescendants()) do
+if v.Name == "Enter" and v:IsA("RemoteFunction") then
+pcall(function() 
+v:InvokeServer(unpack(args)) 
 end)
 end
 end
-
-workspace.DescendantAdded:Connect(function(obj)
-if obj:IsA("RemoteFunction") and obj.Name == "Enter" then
-obj.Name = "Enter_" .. index
-index += 1
-
-for _, v in ipairs(workspace:GetDescendants()) do
-if v:IsA("RemoteFunction") and v.Name:match("^Enter_%d+$") and v ~= obj then
-pcall(function()
-v:InvokeServer(unpack(args_false))
-end)
+wait()
 end
+end)()
 end
-
-pcall(function()
-obj:InvokeServer(unpack(args_true))
-end)
-end
-end)
-end
+GodMode()
 
 
 function FullBright() Lighting.Brightness = Property.Brightness end
