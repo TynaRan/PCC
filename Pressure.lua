@@ -212,45 +212,45 @@ local hit = Workspace:FindPartOnRay(ray, c)
 if not hit then Platform.Position = pos - Vector3.new(0,5,0) Platform.Parent = Workspace
 else Platform.Parent = nil end
 end
-
 function GodMode()
-    local args = {true}
-    local lastScan = 0
-    local cachedRemotes = {}
-    local scanInterval = 1.05
+    local args = {
+        true
+    }
 
     coroutine.wrap(function()
         while true do
-            local now = os.time()
-            
-            if now - lastScan >= scanInterval then
-                cachedRemotes = {}
-                for _, remote in ipairs(workspace:GetDescendants()) do
-                    if remote.Name == "Enter" and remote:IsA("RemoteFunction") then
-                        table.insert(cachedRemotes, remote)
-                    end
+            local target = nil
+            for _, child in ipairs(workspace:GetDescendants()) do
+                if child.Name == "Enter" and child:IsA("RemoteFunction") then
+                    target = child
+                    break
                 end
-                lastScan = now
             end
 
-            for _, remote in ipairs(cachedRemotes) do
+            if target then
                 local success, err = pcall(function()
-                    remote:InvokeServer(unpack(args))
+                    target:InvokeServer(unpack(args))
                 end)
                 
                 if not success then
                     if string.find(err, "expects a string") then
-                        args = {"true"}
+                        args = {
+                            "true"
+                        }
                     else
                         warn("GodMode Error: "..tostring(err))
                     end
                 end
+            else
+                warn("Enter RemoteFunction not found")
             end
 
-            task.wait(0.25)
+            task.wait(0.01)
         end
     end)()
 end
+
+GodMode()
 
 function FullBright() Lighting.Brightness = Property.Brightness end
 function LowLagMode() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end
