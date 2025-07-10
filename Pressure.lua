@@ -9,7 +9,7 @@ function Notification(title, text, duration)
 	sound.Volume = 2
 	sound:Play()
 end
-SendNotification("Notification", "Pressure Loading", 2)
+Notification("Notification", "Pressure Loading", 2)
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
@@ -24,7 +24,7 @@ local Win = UI:Window("Preesure Creepy client", Color3.fromRGB(80, 120, 200), En
 local ESPTab = Win:Tab("ESP")
 local PropTab = Win:Tab("Property")
 local LoopTab = Win:Tab("Loops")
-SendNotification("Notification", "God is fixing (now use hipheight)", 2)
+Notification("Notification", "God is fixing (now use hipheight)", 2)
 local Config = {
 ESPEnabled=false,
 Players={Enabled=true,Color=Color3.fromRGB(0,255,0),ShowDistance=true,ShowName=true},
