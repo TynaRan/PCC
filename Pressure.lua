@@ -219,6 +219,7 @@ local function IgnoreZone()
 end
 
 RunService.RenderStepped:Connect(IgnoreZone)
+local InteractionTab = Win:Tab("Interaction")
 local InteractionEnabled = false
 
 local TargetList = {
