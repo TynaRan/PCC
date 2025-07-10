@@ -35,7 +35,7 @@ Gummylight={Color=Color3.fromRGB(255,20,147),DisplayName="Gummylight"},
 Notebook={Color=Color3.fromRGB(255,255,255),DisplayName="Notebook"},
 Necrobloxicon={Color=Color3.fromRGB(139,0,0),DisplayName="Necrobloxicon"},
 CollisionPart={Color=Color3.fromRGB(255,255,255),DisplayName="Door"},
-PasswordPaper={Color=Color3.fromRGB(255,255,255),DisplayName="PasswordPaper"}
+PasswordPaper={Color=Color3.fromRGB(255,255,255),DisplayName="PasswordPaper"},
 },
 Settings={MaxDistance=500,CheckAllInstances=false,HighlightEnabled=true,BillboardEnabled=true}
 }
@@ -104,6 +104,11 @@ table.insert(ESPVisuals,b)
 end
 ESPObjects[o] = true
 end
+
+function UpdateESP()
+ClearESP()
+if Config.ESPEnabled then CreateESP() end
+end
 for _, o in ipairs(workspace:GetDescendants()) do
 if Config.Settings.CheckAllInstances or o:IsA("Model") or o:IsA("BasePart") then Track(o) end
 end
@@ -116,11 +121,7 @@ if Config.Players.Enabled then
 for _, p in ipairs(Players:GetPlayers()) do Track(p) end
 -- Players.PlayerAdded:Connect(function(p) Track(p) end)
 end
-function UpdateESP()
-ClearESP()
-if Config.ESPEnabled then CreateESP() end
-end
-
+    
 local Platform = Instance.new("Part")
 Platform.Name = "_WalkAir"
 Platform.Size = Vector3.new(10,1,10)
@@ -140,8 +141,8 @@ else Platform.Parent = nil end
 end
 
 function GodMode()
-local args_true = {true}
-local args_false = {false}
+local args_true = {"true"}
+local args_false = {"false"}
 local index = 1
 
 for _, v in ipairs(workspace:GetDescendants()) do
@@ -174,13 +175,7 @@ end
 end)
 end
 
---GodMode()
-pcall(function()
-obj:InvokeServer(unpack(args_true))
-end)
-end
-end)
-end
+GodMode()
 
 function FullBright() Lighting.Brightness = Property.Brightness end
 function LowLagMode() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end
