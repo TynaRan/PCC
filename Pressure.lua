@@ -256,63 +256,65 @@ function GodMode()
 end
 --]]
 function GodMode()
-local e = {"Angler","Eyefestation","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium","Body"}
-local p = game.Players.LocalPlayer
-local o = {}
+local v1 = {"Angler","Eyefestation","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium","Body"} 
+local v2 = game.Players.LocalPlayer
+local v3 = {}
 
-local function L()
-local c = p.Character
-if c then
-local h = c:FindFirstChildOfClass("Humanoid")
-if h then
-o.H = h.HipHeight
-o.W = h.WalkSpeed
-o.J = h.JumpPower
-h.HipHeight = 100
-h.WalkSpeed = 0
-h.JumpPower = 0
-end
-end
-end
-
-local function U()
-local c = p.Character
-if c and o.H then
-local h = c:FindFirstChildOfClass("Humanoid")
-if h then
-h.HipHeight = o.H
-h.WalkSpeed = o.W
-h.JumpPower = o.J
+local function v4()
+local v5 = v2.Character
+if v5 then
+local v6 = v5:FindFirstChildOfClass("Humanoid")
+if v6 then
+v3.H = v6.HipHeight
+v3.W = v6.WalkSpeed
+v3.J = v6.JumpPower
+v6.HipHeight = 100
+v6.WalkSpeed = 0
+v6.JumpPower = 0
 end
 end
 end
 
-local function C()
-while task.wait(0.1) do
-local f = false
-for _,n in pairs(workspace:GetDescendants()) do
-if n:IsA("Model") and table.find(e,n.Name) then
-f = true
-break
-end
-end
-
-if f then
-L()
-else
-U()
+local function v7()
+local v8 = v2.Character
+if v8 and v3.H then
+local v9 = v8:FindFirstChildOfClass("Humanoid")
+if v9 then
+v9.HipHeight = v3.H
+v9.WalkSpeed = v3.W
+v9.JumpPower = v3.J
 end
 end
 end
 
-p.CharacterAdded:Connect(function()
-o = {}
-U()
+local v10 = nil
+
+local function v11(v12)
+if v12:IsA("Model") and table.find(v1,v12.Name) then
+v10 = v12
+v4()
+v12.Destroying:Connect(function()
+v10 = nil
+v7()
 end)
-
-coroutine.wrap(C)()
+end
 end
 
+for _,v13 in ipairs(workspace:GetDescendants()) do
+v11(v13)
+end
+
+workspace.DescendantAdded:Connect(v11)
+
+v2.CharacterAdded:Connect(function()
+v3 = {}
+if v10 then
+v4()
+else
+v7()
+end
+end)
+end
 function FullBright() Lighting.Brightness = Property.Brightness end
 function LowLagMode() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end
 function ClearFog() Lighting.FogStart = 999999 Lighting.FogEnd = 9999999 end
