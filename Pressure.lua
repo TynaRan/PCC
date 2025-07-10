@@ -1,3 +1,15 @@
+function Notification(title, text, duration)
+	game:GetService("StarterGui"):SetCore("SendNotification", {
+		Title = title,
+		Text = text,
+		Duration = duration
+	})
+	local sound = Instance.new("Sound", workspace)
+	sound.SoundId = "rbxassetid://4590657391"
+	sound.Volume = 2
+	sound:Play()
+end
+SendNotification("Notification", "Pressure Loading", 2)
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
@@ -12,7 +24,7 @@ local Win = UI:Window("Preesure Creepy client", Color3.fromRGB(80, 120, 200), En
 local ESPTab = Win:Tab("ESP")
 local PropTab = Win:Tab("Property")
 local LoopTab = Win:Tab("Loops")
-
+SendNotification("Notification", "God is fixing (now use hipheight)", 2)
 local Config = {
 ESPEnabled=false,
 Players={Enabled=true,Color=Color3.fromRGB(0,255,0),ShowDistance=true,ShowName=true},
@@ -212,6 +224,7 @@ local hit = Workspace:FindPartOnRay(ray, c)
 if not hit then Platform.Position = pos - Vector3.new(0,5,0) Platform.Parent = Workspace
 else Platform.Parent = nil end
 end
+--[[
 function GodMode()
     local args = {
         [1] = tostring(true)
@@ -241,8 +254,64 @@ function GodMode()
         end
     end)()
 end
+--]]
+function GodMode()
+local e = {"Angler","Eyefestation","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium","Body"}
+local p = game.Players.LocalPlayer
+local o = {}
 
---GodMode()
+local function L()
+local c = p.Character
+if c then
+local h = c:FindFirstChildOfClass("Humanoid")
+if h then
+o.H = h.HipHeight
+o.W = h.WalkSpeed
+o.J = h.JumpPower
+h.HipHeight = 100
+h.WalkSpeed = 0
+h.JumpPower = 0
+end
+end
+end
+
+local function U()
+local c = p.Character
+if c and o.H then
+local h = c:FindFirstChildOfClass("Humanoid")
+if h then
+h.HipHeight = o.H
+h.WalkSpeed = o.W
+h.JumpPower = o.J
+end
+end
+end
+
+local function C()
+while task.wait(0.1) do
+local f = false
+for _,n in pairs(workspace:GetDescendants()) do
+if n:IsA("Model") and table.find(e,n.Name) then
+f = true
+break
+end
+end
+
+if f then
+L()
+else
+U()
+end
+end
+end
+
+p.CharacterAdded:Connect(function()
+o = {}
+U()
+end)
+
+coroutine.wrap(C)()
+end
 
 function FullBright() Lighting.Brightness = Property.Brightness end
 function LowLagMode() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end
