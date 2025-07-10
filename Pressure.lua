@@ -214,22 +214,31 @@ else Platform.Parent = nil end
 end
 
 function GodMode()
-local args = {true}
+local args = {"true"}
+
 coroutine.wrap(function()
 while true do
-for _,v in ipairs(workspace:GetDescendants()) do
+local found = false
+for _, v in ipairs(workspace:GetDescendants()) do
 if v.Name == "Enter" and v:IsA("RemoteFunction") then
-pcall(function() 
-v:InvokeServer(unpack(args)) 
+found = true
+local success, err = pcall(function()
+v:InvokeServer(unpack(args))
 end)
+if not success then
+warn("Failed: "..tostring(err))
 end
 end
-wait()
+end
+
+if not found then
+warn("Failed: Target not found")
+end
+
+task.wait(0.1)
 end
 end)()
 end
---GodMode()
-
 
 function FullBright() Lighting.Brightness = Property.Brightness end
 function LowLagMode() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end
