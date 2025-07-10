@@ -292,3 +292,53 @@ end
 end
 
 RunService.RenderStepped:Connect(Interaction)
+local AutoPasswordEnabled = false
+
+InteractionTab:Checkbox("AutoPassword", false, function(state)
+AutoPasswordEnabled = state
+end)
+
+function AutoPassword()
+if not AutoPasswordEnabled then return end
+
+local plr = Players.LocalPlayer
+local sources = {workspace}
+if plr then
+if plr.Character then table.insert(sources, plr.Character) end
+if plr:FindFirstChild("Backpack") then table.insert(sources, plr.Backpack) end
+end
+
+local foundPasswords = {}
+
+for _, container in ipairs(sources) do
+for _, v in ipairs(container:GetDescendants()) do
+if v:IsA("Model") and v.Name == "PasswordPaper" then
+local code = v:FindFirstChild("Code")
+if not code then continue end
+local gui = code:FindFirstChildOfClass("SurfaceGui")
+if not gui then continue end
+local label = gui:FindFirstChildWhichIsA("TextLabel", true)
+if not label then continue end
+local text = label.Text
+if text and text ~= "" then
+table.insert(foundPasswords, text)
+end
+end
+end
+end
+
+if #foundPasswords == 0 then return end
+
+for _, remote in ipairs(workspace:GetDescendants()) do
+if remote:IsA("RemoteFunction") and remote.Parent and remote.Parent.Name == "Main" then
+for _, password in ipairs(foundPasswords) do
+local args = {password}
+pcall(function()
+remote:InvokeServer(unpack(args))
+end)
+end
+end
+end
+end
+
+RunService.RenderStepped:Connect(AutoPassword)
