@@ -24,6 +24,86 @@ local Win = UI:Window("Preesure Creepy client", Color3.fromRGB(80, 120, 200), En
 local ESPTab = Win:Tab("ESP")
 local PropTab = Win:Tab("Property")
 local LoopTab = Win:Tab("Loops")
+PropTab:Checkbox("Anti Entity", false, function(state)
+    local entityNames = {"Angler","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium"}
+    local platform = nil
+    local originalPositions = {}
+    local active = state
+    local checkInterval = 0.1
+    local connections = {}
+
+    local function createPlatform()
+        if platform then platform:Destroy() end
+        platform = Instance.new("Part")
+        platform.Size = Vector3.new(1000,1,1000)
+        platform.Position = Vector3.new(0,900,0)
+        platform.Anchored = true
+        platform.Transparency = 0.7
+        platform.Parent = workspace
+    end
+
+    local function teleportPlayers(up)
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                if up then
+                    originalPositions[player.UserId] = player.Character.HumanoidRootPart.CFrame
+                    player.Character.HumanoidRootPart.CFrame = CFrame.new(platform.Position + Vector3.new(0,5,0))
+                else
+                    if originalPositions[player.UserId] then
+                        player.Character.HumanoidRootPart.CFrame = originalPositions[player.UserId]
+                        originalPositions[player.UserId] = nil
+                    end
+                end
+            end
+        end
+    end
+
+    local function checkEntities()
+        local shouldProtect = false
+        for _, child in pairs(workspace:GetDescendants()) do
+            if table.find(entityNames, child.Name) then
+                shouldProtect = true
+                break
+            end
+        end
+
+        if shouldProtect and not platform then
+            createPlatform()
+            teleportPlayers(true)
+        elseif not shouldProtect and platform then
+            teleportPlayers(false)
+            platform:Destroy()
+            platform = nil
+        end
+    end
+
+    connections.added = workspace.DescendantAdded:Connect(function()
+        if active then checkEntities() end
+    end)
+
+    connections.removed = workspace.DescendantRemoved:Connect(function()
+        if active then checkEntities() end
+    end)
+
+    spawn(function()
+        while active do
+            checkEntities()
+            wait(checkInterval)
+        end
+    end)
+
+    if not state then
+        active = false
+        if platform then
+            teleportPlayers(false)
+            platform:Destroy()
+            platform = nil
+        end
+        for _, conn in pairs(connections) do
+            conn:Disconnect()
+        end
+    end
+end)
 Notification("Notification", "God is fixing (now use hipheight)", 2)
 local Config = {
 ESPEnabled=false,
@@ -232,6 +312,7 @@ local hit = Workspace:FindPartOnRay(ray, c)
 if not hit then Platform.Position = pos - Vector3.new(0,5,0) Platform.Parent = Workspace
 else Platform.Parent = nil end
 end
+
 --[[
 function GodMode()
     local args = {
@@ -596,83 +677,3 @@ function ScanEntities()
 end
 
 game:GetService("RunService").RenderStepped:Connect(ScanEntities)
-
-PropTab:Checkbox("Anti Entity", false, function(state)
-    local entityNames = {"Angler","Blitz","Pinkie","Froger","Chainsmoker","Pandemonium"}
-    local trackedEntities = {}
-    local safetyPlatform = nil
-    local originalPositions = {}
-    local childAddedConn = nil
-    local childRemovedConn = nil
-
-    local function createPlatform()
-        if safetyPlatform then safetyPlatform:Destroy() end
-        safetyPlatform = Instance.new("Part")
-        safetyPlatform.Size = Vector3.new(1000,1,1000)
-        safetyPlatform.Position = Vector3.new(0,900,0)
-        safetyPlatform.Anchored = true
-        safetyPlatform.Parent = workspace
-    end
-
-    local function teleportToSafety(player)
-        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-            local safePosition = safetyPlatform.Position + Vector3.new(0,5,0)
-            originalPositions[player.UserId] = player.Character.HumanoidRootPart.CFrame
-            player.Character.HumanoidRootPart.CFrame = CFrame.new(safePosition)
-        end
-    end
-
-    local function returnToOriginal(player)
-        if originalPositions[player.UserId] then
-            player.Character.HumanoidRootPart.CFrame = originalPositions[player.UserId]
-            originalPositions[player.UserId] = nil
-        end
-    end
-
-    local function handleEntityAdded(entity)
-        if entity:IsA("Model") and table.find(entityNames, entity.Name) then
-            trackedEntities[entity] = true
-            createPlatform()
-            for _, player in pairs(game.Players:GetPlayers()) do
-                teleportToSafety(player)
-            end
-        end
-    end
-
-    local function handleEntityRemoved(entity)
-        if trackedEntities[entity] then
-            trackedEntities[entity] = nil
-            local anyEntitiesLeft = false
-            for e,_ in pairs(trackedEntities) do
-                if e:IsA("Model") and table.find(entityNames, e.Name) then
-                    anyEntitiesLeft = true
-                    break
-                end
-            end
-            if not anyEntitiesLeft then
-                for _, player in pairs(game.Players:GetPlayers()) do
-                    returnToOriginal(player)
-                end
-            end
-        end
-    end
-
-    if state then
-        for _, entity in pairs(workspace:GetChildren()) do
-            handleEntityAdded(entity)
-        end
-        childAddedConn = workspace.ChildAdded:Connect(handleEntityAdded)
-        childRemovedConn = workspace.ChildRemoved:Connect(handleEntityRemoved)
-    else
-        if safetyPlatform then
-            for _, player in pairs(game.Players:GetPlayers()) do
-                returnToOriginal(player)
-            end
-            safetyPlatform:Destroy()
-        end
-        if childAddedConn then childAddedConn:Disconnect() end
-        if childRemovedConn then childRemovedConn:Disconnect() end
-        trackedEntities = {}
-        originalPositions = {}
-    end
-end)
