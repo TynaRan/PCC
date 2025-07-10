@@ -379,29 +379,31 @@ end
 end
 end
 end)
-local VelocityEnabled = false
-local VelocitySpeed = 1.5
-
-PropTab:Checkbox("CFrame Movement", false, function(state)
-    VelocityEnabled = state
+local TranslateEnabled = false
+local TranslateSpeed = 1.5
+PropTab:Checkbox("Translate Movement", false, function(state)
+    TranslateEnabled = state
 end)
-PropTab:Textbox("CFrame Speed", false, function(txt)
-    local n = tonumber(txt)
-    if n then VelocitySpeed = n end
-end)
-function Velocity()
-    local c = Players.LocalPlayer.Character
-    local root = c and c:FindFirstChild("HumanoidRootPart")
-    local hum = c and c:FindFirstChildOfClass("Humanoid")
-    if not root or not hum or not VelocityEnabled then return end
 
-    local dir = hum.MoveDirection
-    if dir.Magnitude > 0 then
-        local offset = CFrame.new(dir.Unit * VelocitySpeed)
-        root.CFrame = root.CFrame + offset.Position
+PropTab:Textbox("Translate Speed", false, function(txt)
+    local speed = tonumber(txt)
+    if speed then TranslateSpeed = speed end
+end)
+
+function MoveWithTranslate()
+    local character = Players.LocalPlayer.Character
+    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+    
+    if not rootPart or not humanoid or not TranslateEnabled then return end
+
+    local moveDirection = humanoid.MoveDirection
+    if moveDirection.Magnitude > 0 then
+        rootPart:TranslateBy(moveDirection.Unit * TranslateSpeed)
     end
 end
-RunService.RenderStepped:Connect(Velocity)
+
+RunService.RenderStepped:Connect(MoveWithTranslate)
 local v1 = false
 
 PropTab:Checkbox("Hook SyncedPivot", false, function(v2)
@@ -419,7 +421,7 @@ end)
 local IgnoreEnabled = false
 local IgnoreTargets = {"MonsterLocker"}
 
-PropTab:Checkbox("Ignore Monster", false, function(state)
+PropTab:Checkbox("Ignore MonsterLocker", false, function(state)
     IgnoreEnabled = state
 end)
 
@@ -605,7 +607,7 @@ local v6 = nil
 local v7 = nil
 
 local function v8()
-    if v4 then v4:Destroy() end
+    --if v4 then v4:Destroy() end
     v4 = Instance.new("Part")
     v4.Size = Vector3.new(1000,1,1000)
     v4.Position = Vector3.new(0,150,0)
