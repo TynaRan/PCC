@@ -34,7 +34,8 @@ Blacklight={Color=Color3.fromRGB(75,0,130),DisplayName="Blacklight"},
 Gummylight={Color=Color3.fromRGB(255,20,147),DisplayName="Gummylight"},
 Notebook={Color=Color3.fromRGB(255,255,255),DisplayName="Notebook"},
 Necrobloxicon={Color=Color3.fromRGB(139,0,0),DisplayName="Necrobloxicon"},
-CollisionPart={Color=Color3.fromRGB(255,255,255),DisplayName="Door"}
+CollisionPart={Color=Color3.fromRGB(255,255,255),DisplayName="Door"},
+PasswordPaper={Color=Color3.fromRGB(255,255,255),DisplayName="PasswordPaper"},
 },
 Settings={MaxDistance=500,CheckAllInstances=false,HighlightEnabled=true,BillboardEnabled=true}
 }
