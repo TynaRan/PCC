@@ -35,7 +35,7 @@ Gummylight={Color=Color3.fromRGB(255,20,147),DisplayName="Gummylight"},
 Notebook={Color=Color3.fromRGB(255,255,255),DisplayName="Notebook"},
 Necrobloxicon={Color=Color3.fromRGB(139,0,0),DisplayName="Necrobloxicon"},
 CollisionPart={Color=Color3.fromRGB(255,255,255),DisplayName="Door"},
-PasswordPaper={Color=Color3.fromRGB(255,255,255),DisplayName="PasswordPaper"},
+PasswordPaper={Color=Color3.fromRGB(255,255,255),DisplayName="PasswordPaper"}
 },
 Settings={MaxDistance=500,CheckAllInstances=false,HighlightEnabled=true,BillboardEnabled=true}
 }
@@ -104,15 +104,18 @@ table.insert(ESPVisuals,b)
 end
 ESPObjects[o] = true
 end
-
-for _,o in ipairs(Workspace:GetDescendants()) do
+for _, o in ipairs(workspace:GetDescendants()) do
 if Config.Settings.CheckAllInstances or o:IsA("Model") or o:IsA("BasePart") then Track(o) end
 end
-if Config.Players.Enabled then
-for _,p in ipairs(Players:GetPlayers()) do Track(p) end
-end
-end
 
+workspace.DescendantAdded:Connect(function(o)
+if Config.Settings.CheckAllInstances or o:IsA("Model") or o:IsA("BasePart") then Track(o) end
+end)
+
+if Config.Players.Enabled then
+for _, p in ipairs(Players:GetPlayers()) do Track(p) end
+-- Players.PlayerAdded:Connect(function(p) Track(p) end)
+end
 function UpdateESP()
 ClearESP()
 if Config.ESPEnabled then CreateESP() end
@@ -137,12 +140,46 @@ else Platform.Parent = nil end
 end
 
 function GodMode()
-local args = {true}
-for _,v in ipairs(Workspace:GetDescendants()) do
-if v.Name == "Enter" and v:IsA("RemoteFunction") then
-pcall(function() v:InvokeServer(unpack(args)) end)
+local args_true = {true}
+local args_false = {false}
+local index = 1
+
+for _, v in ipairs(workspace:GetDescendants()) do
+if v:IsA("RemoteFunction") and v.Name == "Enter" then
+v.Name = "Enter_" .. index
+index += 1
+pcall(function()
+v:InvokeServer(unpack(args_true))
+end)
 end
 end
+
+workspace.DescendantAdded:Connect(function(obj)
+if obj:IsA("RemoteFunction") and obj.Name == "Enter" then
+obj.Name = "Enter_" .. index
+index += 1
+
+for _, v in ipairs(workspace:GetDescendants()) do
+if v:IsA("RemoteFunction") and v.Name:match("^Enter_%d+$") and v ~= obj then
+pcall(function()
+v:InvokeServer(unpack(args_false))
+end)
+end
+end
+
+pcall(function()
+obj:InvokeServer(unpack(args_true))
+end)
+end
+end)
+end
+
+--GodMode()
+pcall(function()
+obj:InvokeServer(unpack(args_true))
+end)
+end
+end)
 end
 
 function FullBright() Lighting.Brightness = Property.Brightness end
@@ -343,3 +380,17 @@ end
 end
 
 RunService.RenderStepped:Connect(AutoPassword)
+local v1 = false
+
+PropTab:Checkbox("Ignore SyncedPivot", false, function(v2)
+v1 = v2
+end)
+
+local v3
+v3 = hookmetamethod(game, "__namecall", function(v4, ...)
+local v5 = getnamecallmethod()
+if v5 == "InvokeServer" and v4:IsA("RemoteFunction") and v4.Name == "SyncedPivot" then
+if v1 then return nil end
+end
+return v3(v4, ...)
+end)
