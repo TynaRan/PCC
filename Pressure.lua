@@ -214,7 +214,7 @@ else Platform.Parent = nil end
 end
 function GodMode()
     local args = {
-        true
+        [1] = tostring(true)
     }
 
     coroutine.wrap(function()
@@ -233,24 +233,16 @@ function GodMode()
                 end)
                 
                 if not success then
-                    if string.find(err, "expects a string") then
-                        args = {
-                            "true"
-                        }
-                    else
-                        warn("GodMode Error: "..tostring(err))
-                    end
+                    warn("GodMode Error: "..tostring(err))
                 end
-            else
-                warn("Enter RemoteFunction not found")
             end
 
-            task.wait(0.01)
+            task.wait(0.1)
         end
     end)()
 end
 
-GodMode()
+--GodMode()
 
 function FullBright() Lighting.Brightness = Property.Brightness end
 function LowLagMode() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end
