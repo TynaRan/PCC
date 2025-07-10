@@ -379,31 +379,30 @@ end
 end
 end
 end)
-local TranslateEnabled = false
-local TranslateSpeed = 1.5
-PropTab:Checkbox("Translate Movement", false, function(state)
-    TranslateEnabled = state
+local v2 = false
+local v5 = 2
+PropTab:Checkbox("Movement", false, function(v1)
+    v2 = v1
 end)
 
-PropTab:Textbox("Translate Speed", false, function(txt)
-    local speed = tonumber(txt)
-    if speed then TranslateSpeed = speed end
+PropTab:Textbox("Speed", false, function(v3)
+    local v4 = tonumber(v3)
+    if v4 then v5 = v4 end
 end)
 
-function MoveWithTranslate()
-    local character = Players.LocalPlayer.Character
-    local rootPart = character and character:FindFirstChild("HumanoidRootPart")
-    local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+function v6()
+    local v7 = Players.LocalPlayer.Character
+    local v8 = v7 and v7:FindFirstChildOfClass("Humanoid")
     
-    if not rootPart or not humanoid or not TranslateEnabled then return end
+    if not v7 or not v8 or not v2 then return end
 
-    local moveDirection = humanoid.MoveDirection
-    if moveDirection.Magnitude > 0 then
-        rootPart:TranslateBy(moveDirection.Unit * TranslateSpeed)
+    local v9 = v8.MoveDirection
+    if v9.Magnitude > 0 then
+        v7:TranslateBy(v9.Unit * v5)
     end
 end
 
-RunService.RenderStepped:Connect(MoveWithTranslate)
+RunService.RenderStepped:Connect(v6)
 local v1 = false
 
 PropTab:Checkbox("Hook SyncedPivot", false, function(v2)
