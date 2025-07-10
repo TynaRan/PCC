@@ -175,7 +175,7 @@ end
 end)
 end
 
-GodMode()
+--GodMode()
 
 function FullBright() Lighting.Brightness = Property.Brightness end
 function LowLagMode() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end
